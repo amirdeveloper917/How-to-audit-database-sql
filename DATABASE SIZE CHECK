@@ -1,0 +1,46 @@
+/* How to check database size in mysql */
+
+Use this query to check your database size before auditing in mysql.
+
+SELECT table_schema "DB Name",
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "DB Size in MB" 
+FROM information_schema.tables 
+GROUP BY table_schema; 
+
+/* How to check database size in SQL SERVER */
+
+FIRST METHOD
+Check database size using query in SQL SERVER
+
+ sys.master_files Script 
+SELECT
+    DBname,
+    size,
+    size * 8/1024 'Size (MB)',
+    max_size
+FROM sys.master_files;
+
+To limit the results to a particular database, add the following line before the semicolon:
+WHERE DB_NAME(database_id) = 'DatabaseName'
+
+sp_helpdb Stored Procedure
+EXEC sp_helpdb;
+
+sp_databases Stored Procedure
+EXEC sp_databases;
+
+OR
+
+(SELECT 
+      database_name = DB_NAME(database_id)
+    , log_size_mb = CAST(SUM(CASE WHEN type_desc = 'LOG' THEN size END) * 8. / 1024 AS DECIMAL(8,2))
+    , row_size_mb = CAST(SUM(CASE WHEN type_desc = 'ROWS' THEN size END) * 8. / 1024 AS DECIMAL(8,2))
+    , total_size_mb = CAST(SUM(size) * 8. / 1024 AS DECIMAL(8,2))
+FROM sys.master_files WITH(NOWAIT)
+WHERE database_id = DB_ID() -- for current db 
+GROUP BY database_id )
+
+/*Second Method for checking database size*/
+
+If you need to check a single database, you can quickly find the SQL Server database sizein SQL Server Management Studio (SSMS): Right-click the database and then click Reports -> Standard Reports -> Disk Usage. Alternatively, you can use stored procedures like exec sp_spaceused to get database size. However, both of these methods will show you the size of only a single database. To process all databases on SQL Server, you have to use T-SQL queries, which are complex and require more extensive scripting skills.
+
